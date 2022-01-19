@@ -1,0 +1,14 @@
+FROM python:3.7-slim
+
+WORKDIR /usr/src/app_asvsp
+
+COPY . .
+RUN pip install --no-cache-dir -r requirements.txt
+
+ENV KAFKA_BROKER="localhost:9092"
+ENV TWITTER_API_KEY="lpu9mXm7sa0EzDWaqXQsktBvu"
+ENV TWITTER_API_SECRET="EkTvjq4LFo3tG3oIqDvlSsRAu1dscJXlLbMkXtWHOSgJ5EfwE3"
+ENV TWITTER_ACCESS_TOKEN="1462202609255821333-Fj6EEAQS1MeanVxcSm1owgGXMjpH8v"
+ENV TWITTER_ACCESS_SECRET="LnQbMPZEeInD1mjvARNikdPuTm3ZbCkUA5pbAFmv1UIlV"
+
+CMD ["python", "-u", "./twitter_producer.py"]
