@@ -138,14 +138,14 @@ services:
   #end-region KAFKA
 
   #region SPARK STRUCTURED STREAMING
-  producer1:
-    build: ../spark_stream/kafka_producer
-    container_name: kafka_producer
-    environment:
-      KAFKA_BROKER: "kafka1:19092"
-    depends_on:
-      - kafka1
-      - kafka2
+  # producer1:
+  #   build: ../spark_stream/kafka_producer
+  #   container_name: kafka_producer
+  #   environment:
+  #     KAFKA_BROKER: "kafka1:19092"
+  #   depends_on:
+  #     - kafka1
+  #     - kafka2
 
     
   # hue:
