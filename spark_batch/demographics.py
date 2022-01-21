@@ -18,7 +18,7 @@ dfDemographicsFromCSV = spark.read.option("multiline", "true").option("sep", ","
     .option("inferSchema", "true").option("encoding", "Windows-1250").csv(HDFS_NAMENODE + "/batch/birth_death_growth_rates.csv")
 
 dfDemographics = dfDemographicsFromCSV
-# dfDemographics.persist()
+dfDemographics.persist()
 dfBirthDeathRate = dfDemographics.select("country_name", "year", "crude_birth_rate", "crude_death_rate", "rate_natural_increase") \
     .where((dfDemographics.year > 1994) & (dfDemographics.year < 2020))
 
@@ -27,3 +27,14 @@ dfMigrations = dfDemographics.select("country_name", "year", "net_migration") \
 
 dfBirthDeathRate.show()
 dfMigrations.show()
+
+dfBirthDeathRate.write.option("header", "true").csv(HDFS_NAMENODE + "/transformation_layer/birth_death_rate", mode="overwrite")
+dfMigrations.write.option("header", "true").csv(HDFS_NAMENODE + "/transformation_layer/migrations", mode="overwrite")
+
+# dfReadMigr = spark.read.option("multiline", "true").option("sep", ",").option("header", "true") \
+#     .option("inferSchema", "true").option("encoding", "Windows-1250").csv(HDFS_NAMENODE + "/transformation_layer/birth_death_rate")
+
+# dfReadBirthDeathR = spark.read.option("multiline", "true").option("sep", ",").option("header", "true") \
+#     .option("inferSchema", "true").option("encoding", "Windows-1250").csv(HDFS_NAMENODE + "/transformation_layer/migrations")
+
+dfDemographics.unpersist()

@@ -37,3 +37,14 @@ dfArrivals.show()
 dfDepartures = dfDepartures.select("Country Name", expr(unpivotExprDep))
 dfDepartures.printSchema()
 dfDepartures.show()
+
+
+dfArrivals.write.option("header", "true").csv(HDFS_NAMENODE + "/transformation_layer/arrivals", mode="overwrite")
+dfDepartures.write.option("header", "true").csv(HDFS_NAMENODE + "/transformation_layer/departures", mode="overwrite")
+
+# dfReadArrs = spark.read.option("multiline", "true").option("sep", ",").option("header", "true") \
+#     .option("inferSchema", "true").option("encoding", "Windows-1250").csv(HDFS_NAMENODE + "/transformation_layer/arrivals")
+
+# dfReadDeps = spark.read.option("multiline", "true").option("sep", ",").option("header", "true") \
+#     .option("inferSchema", "true").option("encoding", "Windows-1250").csv(HDFS_NAMENODE + "/transformation_layer/departures")
+
