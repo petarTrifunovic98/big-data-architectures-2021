@@ -65,13 +65,21 @@ dfEarthquakes.createOrReplaceTempView("EARTHQUAKES")
 dfCountries.createOrReplaceTempView("COUNTRIES")
 dfUSStates.createOrReplaceTempView("STATES")
 
-dfEarthquakesCountries = spark.sql("select * from EARTHQUAKES e inner join COUNTRIES c on e.place like concat('% ', c.country_name, '%')")
+dfEarthquakesCountries = spark.sql("select * from EARTHQUAKES e inner join COUNTRIES c on \
+    e.place like concat('% ', c.country_name, ' %') or \
+    e.place like concat(c.country_name, ' %') or \
+    e.place like concat('% ', c.country_name)")
+    
 #dfEarthquakesStates = dfUSStates.filter(dfUSStates.state_name == 'Arizona')
 dfEarthquakesStates = spark.sql("select * from EARTHQUAKES e inner join STATES s on \
     e.place like concat('%km NE %', s.state_code, '%') or \
     (e.place not like '%km NE %' and \
-        (e.place like concat('% ', s.state_code, ' %') or e.place like concat('% ', s.state_code))) or \
-    e.place like concat('%', s.state_name, '%')")
+        (e.place like concat('% ', s.state_code, ' %') or \
+         e.place like concat('% ', s.state_code) or \
+         e.place like concat(s.state_code, ' %'))) or \
+    e.place like concat('% ', s.state_name, ' %') or \
+    e.place like concat(s.state_name, ' %') or \
+    e.place like concat('% ', s.state_name)")
 
 dfEarthquakesStates = dfEarthquakesStates.withColumn("country_name", lit("United States"))
 dfEarthquakesStates = dfEarthquakesStates.drop("state_code", "state_name")
