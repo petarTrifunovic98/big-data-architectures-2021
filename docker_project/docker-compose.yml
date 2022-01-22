@@ -137,6 +137,18 @@ services:
       - zoo1
   #end-region KAFKA
 
+  #region MONGODB
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    volumes:
+      - mongodb:/data/db
+    ports:
+      - "27017:27017"
+    expose:
+      - "27017"
+  #end region MONGODB
+
   #region SPARK STRUCTURED STREAMING
   # producer1:
   #   build: ../spark_stream/kafka_producer
@@ -169,3 +181,4 @@ volumes:
   zoo1log:
   kafka1:
   kafka2:
+  mongodb:
