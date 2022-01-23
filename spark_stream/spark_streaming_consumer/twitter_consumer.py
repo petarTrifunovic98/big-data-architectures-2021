@@ -4,9 +4,20 @@ from pyspark.sql.types import *
 import json
 
 
+def foreach_batch_action_relevant_tweets(df, epoch_id):
+    df.write.format("mongo").mode("overwrite"). \
+    option("database", "streaming_data").option("collection", "relevant_tweets_count").save()
+
+def foreach_batch_action_tweets_with_earthquake(df, epoch_id):
+    df.write.format("mongo").mode("overwrite"). \
+    option("database", "streaming_data").option("collection", "tweets_with_earthquake").save()
+    df.show()
+
+
 spark = SparkSession \
     .builder \
     .appName("Twitter consumer") \
+    .config("spark.mongodb.output.uri", "mongodb://mongodb:27017/streaming_data.seismic") \
     .getOrCreate()
 spark.sparkContext.setLogLevel('WARN')
 
@@ -17,47 +28,40 @@ tweets = spark \
   .option("subscribe", "test_topic") \
   .load()
 
-stopWordList = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your", "yours", "yourself",\
-                                                        "yourselves", "he", "him", "his", "himself", "she", "her", "hers", "herself", "it", "its", "itself",\
-                                                        "they", "them", "their", "theirs", "themselves", "what", "which", "who", "whom", "this", "that", "these",\
-                                                        "those", "am", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "having", "do", "does",\
-                                                        "did", "doing", "a", "an", "the", "and", "but", "if", "or", "because", "as", "until", "while", "of", "at", "by",\
-                                                        "for", "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below",\
-                                                        "to", "from", "up", "down", "in", "out", "on", "off", "over", "under", "again", "further", "then", "once", "here",\
-                                                        "there", "when", "where", "why", "how", "all", "any", "both", "each", "few", "more", "most", "other", "some", "such",\
-                                                        "no", "nor", "not", "only", "own", "same", "so", "than", "too", "very", "s", "t", "can", "will", "just", "don",\
-                                                        "should", "now"]
+relevantUsers = ["USGS_ShakeAlert", "QuakesToday", "earthquakeBot", "USGS_Quakes", "USGSted", "SeismicFox1", \
+    "EQAlerts", "raspishakEQ", "earthshook", "VolcanoWatching", "LastQuake", "SeismoSue", "EMSC", "myearthquakeapp", \
+    "MapQuake", "earthb0t", "phivolcs_dost"]
 
-# words = tweets.select(
-#    explode(
-#        split(tweets.value, " ")
-#    ).alias("word")
-# ).filter(~lower(col("word")).isin(stopWordList))
 schema = StructType() \
     .add("text", StringType()) \
     .add("user", StringType())
 
 tweets = tweets.withColumn('data', from_json(tweets.value.cast(StringType()), schema))
-words = tweets.select(
-   explode(
-       split(tweets.data.text, " ")
-   ).alias("word")
-).filter(~lower(col("word")).isin(stopWordList))
 
-wordCounts = words.groupBy("word").count().orderBy(desc("count")).limit(10)
+tweetsWithEarthquakeAndMagnitude = tweets.select(tweets.timestamp). \
+    filter(lower(tweets.data.text).contains("earthquake") & \
+        (lower(tweets.data.text).contains("magnitude") | lower(tweets.data.text).contains("mag")))
+tweetsWithEarthquakeAndMagnitudeCount = tweetsWithEarthquakeAndMagnitude. \
+    groupBy(window(tweetsWithEarthquakeAndMagnitude.timestamp, "10 seconds")). \
+    count()
 
-query = wordCounts \
+relevantTweets = tweets.select(
+   tweets.data.user.alias("user"),
+   tweets.timestamp
+).filter(col("user").isin(relevantUsers))
+relevantTweetsCount = relevantTweets.groupBy(window(relevantTweets.timestamp, "30 seconds")).count()
+
+query = relevantTweetsCount \
     .writeStream \
-    .format("console") \
+    .foreachBatch(foreach_batch_action_relevant_tweets) \
     .outputMode("complete") \
     .start()
 
-
-# query = wordCounts \
-#     .writeStream \
-#     .outputMode("complete") \
-#     .format("console") \
-#     .trigger(processingTime='2 seconds') \
-#     .start()
+query2 = tweetsWithEarthquakeAndMagnitudeCount \
+    .writeStream \
+    .foreachBatch(foreach_batch_action_tweets_with_earthquake) \
+    .outputMode("complete") \
+    .start()
 
 query.awaitTermination()
+query2.awaitTermination()
