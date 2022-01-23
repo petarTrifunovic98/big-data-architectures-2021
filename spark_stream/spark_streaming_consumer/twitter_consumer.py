@@ -1,12 +1,14 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
+from pyspark.sql.types import *
+import json
 
 
 spark = SparkSession \
     .builder \
     .appName("Twitter consumer") \
     .getOrCreate()
-
+spark.sparkContext.setLogLevel('WARN')
 
 tweets = spark \
   .readStream \
@@ -26,19 +28,30 @@ stopWordList = ["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "yo
                                                         "no", "nor", "not", "only", "own", "same", "so", "than", "too", "very", "s", "t", "can", "will", "just", "don",\
                                                         "should", "now"]
 
+# words = tweets.select(
+#    explode(
+#        split(tweets.value, " ")
+#    ).alias("word")
+# ).filter(~lower(col("word")).isin(stopWordList))
+schema = StructType() \
+    .add("text", StringType()) \
+    .add("user", StringType())
+
+tweets = tweets.withColumn('data', from_json(tweets.value.cast(StringType()), schema))
 words = tweets.select(
    explode(
-       split(tweets.value, " ")
+       split(tweets.data.text, " ")
    ).alias("word")
 ).filter(~lower(col("word")).isin(stopWordList))
 
 wordCounts = words.groupBy("word").count().orderBy(desc("count")).limit(10)
 
-query = tweets \
+query = wordCounts \
     .writeStream \
-    .outputMode("update") \
     .format("console") \
+    .outputMode("complete") \
     .start()
+
 
 # query = wordCounts \
 #     .writeStream \
