@@ -55,7 +55,8 @@ dfSeismic.printSchema()
 columnsToJoinOn = ['country_name', 'year']
 dfSeismicData = dfSeismic.join(dfArrs, columnsToJoinOn).join(dfDeps, columnsToJoinOn) \
     .join(dfMigr, columnsToJoinOn).join(dfBirthDeathRate, columnsToJoinOn)
-dfSeismicData.write.format("mongo").mode("append").save()
+dfSeismicData = dfSeismicData.withColumn("occurrence_y", dfSeismicData.year).drop("year")
+dfSeismicData.write.format("mongo").mode("overwrite").save()
 #dfSeismicAndArrs.printSchema()
 #dfSeismicAndArrs.show(20)
 
