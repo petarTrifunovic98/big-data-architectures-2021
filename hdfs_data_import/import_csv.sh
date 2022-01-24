@@ -1,13 +1,18 @@
 #!/bin/bash
 
-echo ">>>>>>>>>>>>>>>>EXECUTING<<<<<<<<<<<<<<<<<"
-hdfs dfs -test -e $CORE_CONF_fs_defaultFS/batch/seismic_activity_info.csv
+while ! jps | grep -q NameNode
+do
+    echo ">>>>>>>> NAMENODE NOT UP <<<<<<<<<"
+    sleep 3
+done
+echo ">>>>>>>>>> NAMENODE UP <<<<<<<<<<"
 
-if [ $? -eq 1 ] 
-then
-    echo ">>>>>>>>>>>FILE DOES NOT EXIST<<<<<<<<<<<<"
-    hdfs dfs -put /data/batch/seismic_activity_info.csv $CORE_CONF_fs_defaultFS/batch/seismic_activity_info.csv
-    echo ">>>>>>>>>>>FILE IMPORTED INTO HDFS<<<<<<<<<<<<<"
-else
-    echo ">>>>>>>>>>>FILE ALREADY EXISTS<<<<<<<<<<<<<<<<<"
-fi
+
+while ! hdfs dfs -test -d /batch
+do
+    echo ">>>>>>>>>>>DIRECTORY DOES NOT EXIST<<<<<<<<<<<<"
+    sleep 3
+    hdfs dfs -put /home/data/batch /batch
+done
+echo ">>>>>>>>>>>DIRECTORY IS ON HDFS<<<<<<<<<<<<<<<<<"
+

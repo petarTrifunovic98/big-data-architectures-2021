@@ -5,12 +5,15 @@ services:
   namenode:
     image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
     container_name: namenode
+    command: bash /home/hdfs_data_import/run_namenode.sh
+    tty: true
     ports:
       - 9870:9870
       - 9000:9000
     volumes:
       - hadoop_nn:/hadoop/dfs/name
-      - ../local_data:/data
+      - ../local_data:/home/data
+      - ../hdfs_data_import:/home/hdfs_data_import
     environment:
       - CLUSTER_NAME=hdfs_cluster
     env_file:
@@ -36,13 +39,6 @@ services:
     env_file:
       - ./hdfs.env
 
-  # hdfs_importer:
-  #   build: ../hdfs_data_import
-  #   container_name: hdfs_importer
-  #   depends_on:
-  #     - namenode
-  #   env_file:
-  #     - ./hdfs.env
   #end-region HDFS
 
   #region SPARK
