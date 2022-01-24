@@ -50,21 +50,27 @@ class TwitterStreamer():
             listener = ListenerTS()
             auth = self.twitterAuth.authenticateTwitterApp()
             stream = Stream(auth, listener)
-            stream.filter(track=["Apple"], stall_warnings=True, languages=["en"])
+            stream.filter(track=["earthquake"], stall_warnings=True, languages=["en"])
 
 
 class ListenerTS(Stream):
 
-    def on_data(self, raw_data):
-        string_data = raw_data.decode('UTF-8')
-        json_data = json.loads(string_data)
-        json_text = json_data["text"]
-        string_text = json.dumps(json_text)
-        print(string_text)
-        byte_text = string_text.encode('utf-8')
-        producer.send(topic_name, byte_text)
+    def on_status(self, status):
+        if hasattr(status, "extended_tweet"):
+            text = status.extended_tweet['full_text']
+        else:
+            text = status.text
+        user = status.user.screen_name
+        value = {'text': text, 'user': user}
+        value_json = json.dumps(value)
+        #print(status._json)
+        print("<<<<<<<<<<  ", user, "  >>>>>>>>>>>")
+        print()
+        #print()
+        producer.send(topic_name, bytes(value_json, 'utf-8'))
         return True
 
 print(">>>>>PRODUCER<<<<<")
 listener = ListenerTS(API_key, API_secret, access_token, access_secret)
-listener.filter(track=["Apple"], stall_warnings=True, languages=["en"])
+listener.filter(track=["earthquake", "#earthquake", "quake", "#quake", "earthquakes", "#earthquakes", "magnitude", "mag"], \
+    stall_warnings=True, languages=["en"])
