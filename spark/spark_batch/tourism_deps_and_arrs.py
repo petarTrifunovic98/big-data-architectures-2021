@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import time
 from pyspark.sql import SparkSession, Row
 from pyspark.sql.functions import explode
 from pyspark.sql.functions import create_map
@@ -32,17 +33,24 @@ unpivotExprDep = unpivotExpr + " as (year, departures)"
 
 dfArrivals = dfArrivals.select("Country Name", expr(unpivotExprArr))
 dfArrivals = dfArrivals.withColumn("country_name", dfArrivals["Country Name"]).drop("Country Name")
-dfArrivals.printSchema()
-dfArrivals.show()
+# dfArrivals.printSchema()
+# dfArrivals.show()
 
 dfDepartures = dfDepartures.select("Country Name", expr(unpivotExprDep))
 dfDepartures = dfDepartures.withColumn("country_name", dfDepartures["Country Name"]).drop("Country Name")
-dfDepartures.printSchema()
-dfDepartures.show()
+# dfDepartures.printSchema()
+# dfDepartures.show()
 
 
-dfArrivals.write.option("header", "true").csv(HDFS_NAMENODE + "/transformation_layer/arrivals", mode="overwrite")
-dfDepartures.write.option("header", "true").csv(HDFS_NAMENODE + "/transformation_layer/departures", mode="overwrite")
+while True:
+    try:
+        dfArrivals.write.option("header", "true").csv(HDFS_NAMENODE + "/transformation_layer/arrivals", mode="ignore")
+        dfDepartures.write.option("header", "true").csv(HDFS_NAMENODE + "/transformation_layer/departures", mode="ignore")
+        print("\n\n<<<<<<<<<< SPARK WROTE ARRIVALS AND DEPARTURES TO HDFS >>>>>>>>>>>>>>>\n\n")
+        break
+    except:
+        print("<<<<<<<<<<<<<< Failure! Trying again... >>>>>>>>>>>>")
+        time.sleep(5)
 
 # dfReadArrs = spark.read.option("multiline", "true").option("sep", ",").option("header", "true") \
 #     .option("inferSchema", "true").option("encoding", "Windows-1250").csv(HDFS_NAMENODE + "/transformation_layer/arrivals")

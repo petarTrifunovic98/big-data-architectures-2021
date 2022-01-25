@@ -63,14 +63,11 @@ class ListenerTS(Stream):
         user = status.user.screen_name
         value = {'text': text, 'user': user}
         value_json = json.dumps(value)
-        #print(status._json)
-        print("<<<<<<<<<<  ", user, "  >>>>>>>>>>>")
-        print()
-        #print()
+        print("sent to kafka topic")
         producer.send(topic_name, bytes(value_json, 'utf-8'))
         return True
 
-print(">>>>>PRODUCER<<<<<")
+print("\n\n\n>>>>>PRODUCER<<<<<\n\n\n")
 listener = ListenerTS(API_key, API_secret, access_token, access_secret)
 listener.filter(track=["earthquake", "#earthquake", "quake", "#quake", "earthquakes", "#earthquakes", "magnitude", "mag"], \
     stall_warnings=True, languages=["en"])
