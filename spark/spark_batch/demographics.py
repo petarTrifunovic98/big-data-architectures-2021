@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import time
 from sqlite3 import Timestamp
 from pyspark.sql import SparkSession, Row
 from pyspark.sql.functions import col
@@ -10,7 +11,9 @@ from pyspark.sql.functions import year
 from pyspark.sql.functions import to_timestamp
 from pyspark.sql.types import *
 
+print("<<<<<<<<<<<<<<<<<<<<< SPARK SCRIPT >>>>>>>>>>>>>>>>>>>>>>")
 spark = SparkSession.builder.appName("demographics").getOrCreate()
+#spark.sparkContext.setLogLevel('WARN')
 
 HDFS_NAMENODE = os.environ["CORE_CONF_fs_defaultFS"]
 
@@ -28,8 +31,15 @@ dfMigrations = dfDemographics.select("country_name", "year", "net_migration") \
 dfBirthDeathRate.show()
 dfMigrations.show()
 
-dfBirthDeathRate.write.option("header", "true").csv(HDFS_NAMENODE + "/transformation_layer/birth_death_rate", mode="overwrite")
-dfMigrations.write.option("header", "true").csv(HDFS_NAMENODE + "/transformation_layer/migrations", mode="overwrite")
+while True:
+    try:
+        dfBirthDeathRate.write.option("header", "true").csv(HDFS_NAMENODE + "/transformation_layer/birth_death_rate", mode="ignore")
+        dfMigrations.write.option("header", "true").csv(HDFS_NAMENODE + "/transformation_layer/migrations", mode="ignore")
+        print("\n\n<<<<<<<<<< SPARK WROTE DEMOGRAPHICS AND MIGRATIONS TO HDFS >>>>>>>>>>>>>>>\n\n")
+        break
+    except:
+        print("<<<<<<<<<<<<<< Failure! Trying again... >>>>>>>>>>>>")
+        time.sleep(5)
 
 # dfReadMigr = spark.read.option("multiline", "true").option("sep", ",").option("header", "true") \
 #     .option("inferSchema", "true").option("encoding", "Windows-1250").csv(HDFS_NAMENODE + "/transformation_layer/birth_death_rate")

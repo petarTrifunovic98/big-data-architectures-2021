@@ -29,15 +29,15 @@ services:
     env_file:
       - ./hdfs.env
 
-  datanode2:
-    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
-    container_name: datanode2
-    volumes:
-      - hadoop_dn2:/hadoop/dfs/data
-    environment:
-      SERVICE_PRECONDITION: "namenode:9870"
-    env_file:
-      - ./hdfs.env
+  # datanode2:
+  #   image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+  #   container_name: datanode2
+  #   volumes:
+  #     - hadoop_dn2:/hadoop/dfs/data
+  #   environment:
+  #     SERVICE_PRECONDITION: "namenode:9870"
+  #   env_file:
+  #     - ./hdfs.env
 
   #end-region HDFS
 
@@ -45,6 +45,7 @@ services:
   spark-master:
     image: bde2020/spark-master:3.0.1-hadoop3.2
     container_name: spark-master
+    command: bash /home/spark_automatic_run/spark_run.sh
     ports:
       - 8080:8080
       - 7077:7077
@@ -53,8 +54,9 @@ services:
     env_file:
       - ./hdfs.env
     volumes: 
-      - ../spark_batch:/home/spark_batch
-      - ../spark_stream/spark_streaming_consumer:/home/spark_streaming
+      - ../spark/spark_batch:/home/spark_batch
+      - ../spark/spark_stream/spark_streaming_consumer:/home/spark_stream
+      - ../spark/spark_automatic_run:/home/spark_automatic_run
 
   spark-worker1:
     image: bde2020/spark-worker:3.0.1-hadoop3.2
@@ -68,17 +70,17 @@ services:
     env_file:
       - ./hdfs.env
   
-  spark-worker2:
-    image: bde2020/spark-worker:3.0.1-hadoop3.2
-    container_name: spark-worker2
-    depends_on:
-      - spark-master
-    environment:
-      - SPARK_MASTER=spark://spark-master:7077
-    ports:
-      - 8082:8081
-    env_file:
-      - ./hdfs.env
+  # spark-worker2:
+  #   image: bde2020/spark-worker:3.0.1-hadoop3.2
+  #   container_name: spark-worker2
+  #   depends_on:
+  #     - spark-master
+  #   environment:
+  #     - SPARK_MASTER=spark://spark-master:7077
+  #   ports:
+  #     - 8082:8081
+  #   env_file:
+  #     - ./hdfs.env
   #end-region SPARK
 
   #region ZOOKEEPER
@@ -94,9 +96,9 @@ services:
     volumes:
       - zoo1:/data
       - zoo1log:/datalog
-  # #end-region ZOOKEEPER
+  #end-region ZOOKEEPER
 
-  # #region KAFKA
+  #region KAFKA
   kafka1:
     image: confluentinc/cp-kafka:5.3.1
     container_name: kafka1
@@ -115,22 +117,22 @@ services:
     depends_on:
       - zoo1
 
-  kafka2:
-    image: confluentinc/cp-kafka:5.3.1
-    container_name: kafka2
-    ports:
-      - "9093:9093"
-    environment:
-      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka2:19093,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
-      KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-      KAFKA_BROKER_ID: 2
-      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
-    volumes:
-      - kafka2:/var/lib/kafka/data
-    depends_on:
-      - zoo1
+  # kafka2:
+  #   image: confluentinc/cp-kafka:5.3.1
+  #   container_name: kafka2
+  #   ports:
+  #     - "9093:9093"
+  #   environment:
+  #     KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka2:19093,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+  #     KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
+  #     KAFKA_BROKER_ID: 2
+  #     KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+  #   volumes:
+  #     - kafka2:/var/lib/kafka/data
+  #   depends_on:
+  #     - zoo1
   #end-region KAFKA
 
   #region MONGODB
@@ -143,6 +145,16 @@ services:
       - "27017:27017"
     expose:
       - "27017"
+
+  mongodb2:
+    image: mongo
+    container_name: mongodb2
+    volumes:
+      - mongodb2:/data/db
+    ports:
+      - "27018:27017"
+    expose:
+      - "27018"
   #end region MONGODB
 
   #region METABASE
@@ -150,40 +162,54 @@ services:
     image: metabase/metabase:latest
     container_name: metabase
     volumes: 
-     - metabase:/metabase-data
-    environment:
-      MB_DB_TYPE: postgres
-      MB_DB_DBNAME: metabase
-      MB_DB_PORT: 5432
-      MB_DB_USER: petar
-      MB_DB_PASS: petar
-      MB_DB_HOST: postgresdb  
+     - metabase:/metabase-data  
     ports:
      - "3000:3000"
+    # environment:
+    #   MB_DB_TYPE: postgres
+    #   MB_DB_DBNAME: metabase
+    #   MB_DB_PORT: 5432
+    #   MB_DB_USER: petar
+    #   MB_DB_PASS: petar
+    #   MB_DB_HOST: postgresdb
+    # depends_on:
+    #   - postgresdb
 
-  postgresdb:
-    image: postgres
-    container_name: postgresdb
-    environment:
-      POSTGRES_USER: petar
-      POSTGRES_DB: metabase
-      POSTGRES_PASSWORD: petar
+  # postgresdb:
+  #   image: postgres
+  #   container_name: postgresdb
+  #   environment:
+  #     POSTGRES_USER: petar
+  #     POSTGRES_DB: metabase
+  #     POSTGRES_PASSWORD: petar
   #end region METABASE
 
   #region SPARK STRUCTURED STREAMING
   producer1:
-    build: ../spark_stream/kafka_producer
+    build: ../spark/spark_stream/kafka_producer
     container_name: kafka_producer
-    tty: true
+    command: python3 /home/producer/twitter_producer.py
+    #tty: true
     environment:
       KAFKA_BROKER: "kafka1:19092"
     depends_on:
       - kafka1
-      - kafka2
+      #- kafka2
     volumes:
-      - ../spark_stream/kafka_producer/producer:/home/producer
+      - ../spark/spark_stream/kafka_producer/producer:/home/producer
   #end region SPARK STRUCTURED STREAMING
 
+volumes:
+  hadoop_nn:
+  hadoop_dn1:
+  #hadoop_dn2:
+  zoo1:
+  zoo1log:
+  kafka1:
+  #kafka2:
+  mongodb:
+  mongodb2:
+  metabase:
     
   # hue:
   #   image: gethue/hue:20201111-135001
@@ -196,15 +222,3 @@ services:
   #     - ./conf.dist:/usr/share/hue/desktop/conf
   #   depends_on: 
   #     - namenode
-
-  
-volumes:
-  hadoop_nn:
-  hadoop_dn1:
-  hadoop_dn2:
-  zoo1:
-  zoo1log:
-  kafka1:
-  kafka2:
-  mongodb:
-  metabase:
