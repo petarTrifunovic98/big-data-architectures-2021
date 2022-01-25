@@ -48,7 +48,8 @@ relevantTweets = tweets.select(
     tweets.data.user.alias("user"),
     tweets.timestamp
 ).join(dfRelevantUsers, "user")
-relevantTweetsCountPerUser = relevantTweets.groupBy(window(relevantTweets.timestamp, "30 seconds"), relevantTweets.user).count()
+relevantTweetsCountPerUser = relevantTweets.groupBy(window(relevantTweets.timestamp, "30 seconds"), relevantTweets.user).\
+    count().withColumnRenamed("count", "num_tweets_by_user")
 
 
 qRelevantTweetsCountPerUser = relevantTweetsCountPerUser \

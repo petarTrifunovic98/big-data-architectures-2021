@@ -33,7 +33,7 @@ tweetsWithEarthquakeAndMagnitude = tweets.select(tweets.timestamp). \
         (lower(tweets.data.text).contains("magnitude") | lower(tweets.data.text).contains("mag")))
 tweetsWithEarthquakeAndMagnitudeCount = tweetsWithEarthquakeAndMagnitude. \
     groupBy(window(tweetsWithEarthquakeAndMagnitude.timestamp, "30 seconds")). \
-    count()
+    count().withColumnRenamed("count", "num_tweets_mag_and_quake_words")
 
 
 qTweetsWithEarthquakeAndMagCount = tweetsWithEarthquakeAndMagnitudeCount \
