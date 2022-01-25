@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import time
 from sqlite3 import Timestamp
 from pyspark.sql import SparkSession, Row
 from pyspark.sql.functions import col
@@ -112,6 +113,7 @@ while True:
         break
     except:
         print("<<<<<<<<<<<<<< Failure! Trying again... >>>>>>>>>>>>")
+        time.sleep(5)
 dfEarthquakesWithCountries.unpersist()
 
 dfReadSeismic1 = spark.read.option("multiline", "true").option("sep", ",").option("header", "true") \
