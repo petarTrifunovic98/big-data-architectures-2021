@@ -28,17 +28,6 @@ services:
       SERVICE_PRECONDITION: "namenode:9870"
     env_file:
       - ./hdfs.env
-
-  # datanode2:
-  #   image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
-  #   container_name: datanode2
-  #   volumes:
-  #     - hadoop_dn2:/hadoop/dfs/data
-  #   environment:
-  #     SERVICE_PRECONDITION: "namenode:9870"
-  #   env_file:
-  #     - ./hdfs.env
-
   #end-region HDFS
 
   #region SPARK
@@ -69,18 +58,6 @@ services:
       - 8081:8081
     env_file:
       - ./hdfs.env
-  
-  # spark-worker2:
-  #   image: bde2020/spark-worker:3.0.1-hadoop3.2
-  #   container_name: spark-worker2
-  #   depends_on:
-  #     - spark-master
-  #   environment:
-  #     - SPARK_MASTER=spark://spark-master:7077
-  #   ports:
-  #     - 8082:8081
-  #   env_file:
-  #     - ./hdfs.env
   #end-region SPARK
 
   #region ZOOKEEPER
@@ -116,23 +93,6 @@ services:
       - kafka1:/var/lib/kafka/data
     depends_on:
       - zoo1
-
-  # kafka2:
-  #   image: confluentinc/cp-kafka:5.3.1
-  #   container_name: kafka2
-  #   ports:
-  #     - "9093:9093"
-  #   environment:
-  #     KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka2:19093,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093
-  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
-  #     KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
-  #     KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-  #     KAFKA_BROKER_ID: 2
-  #     KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
-  #   volumes:
-  #     - kafka2:/var/lib/kafka/data
-  #   depends_on:
-  #     - zoo1
   #end-region KAFKA
 
   #region MONGODB
@@ -165,23 +125,6 @@ services:
      - metabase:/metabase-data  
     ports:
      - "3000:3000"
-    # environment:
-    #   MB_DB_TYPE: postgres
-    #   MB_DB_DBNAME: metabase
-    #   MB_DB_PORT: 5432
-    #   MB_DB_USER: petar
-    #   MB_DB_PASS: petar
-    #   MB_DB_HOST: postgresdb
-    # depends_on:
-    #   - postgresdb
-
-  # postgresdb:
-  #   image: postgres
-  #   container_name: postgresdb
-  #   environment:
-  #     POSTGRES_USER: petar
-  #     POSTGRES_DB: metabase
-  #     POSTGRES_PASSWORD: petar
   #end region METABASE
 
   #region SPARK STRUCTURED STREAMING
@@ -189,12 +132,12 @@ services:
     build: ../spark/spark_stream/kafka_producer
     container_name: kafka_producer
     command: python3 /home/producer/twitter_producer.py
-    #tty: true
     environment:
       KAFKA_BROKER: "kafka1:19092"
+    env_file:
+      - ../spark/spark_stream/spark_stream.env
     depends_on:
       - kafka1
-      #- kafka2
     volumes:
       - ../spark/spark_stream/kafka_producer/producer:/home/producer
   #end region SPARK STRUCTURED STREAMING
@@ -202,23 +145,9 @@ services:
 volumes:
   hadoop_nn:
   hadoop_dn1:
-  #hadoop_dn2:
   zoo1:
   zoo1log:
   kafka1:
-  #kafka2:
   mongodb:
   mongodb2:
   metabase:
-    
-  # hue:
-  #   image: gethue/hue:20201111-135001
-  #   hostname: hue
-  #   container_name: hue
-  #   dns: 8.8.8.8
-  #   ports:
-  #     - "8888:8888"
-  #   volumes:
-  #     - ./conf.dist:/usr/share/hue/desktop/conf
-  #   depends_on: 
-  #     - namenode

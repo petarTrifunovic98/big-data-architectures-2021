@@ -33,13 +33,9 @@ unpivotExprDep = unpivotExpr + " as (year, departures)"
 
 dfArrivals = dfArrivals.select("Country Name", expr(unpivotExprArr))
 dfArrivals = dfArrivals.withColumn("country_name", dfArrivals["Country Name"]).drop("Country Name")
-# dfArrivals.printSchema()
-# dfArrivals.show()
 
 dfDepartures = dfDepartures.select("Country Name", expr(unpivotExprDep))
 dfDepartures = dfDepartures.withColumn("country_name", dfDepartures["Country Name"]).drop("Country Name")
-# dfDepartures.printSchema()
-# dfDepartures.show()
 
 
 while True:

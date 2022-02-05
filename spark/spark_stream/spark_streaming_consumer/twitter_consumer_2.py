@@ -23,10 +23,6 @@ tweets = spark \
   .option("subscribe", "test_topic") \
   .load()
 
-# relevantUserList = ["QuakesToday", "earthquakeBot", "USGS_ShakeAlert",\
-#     "USGS_Quakes", "USGSted", "SeismicFox1", "EQAlerts", \
-#     "raspishakEQ", "earthshook", "VolcanoWatching", "LastQuake", \
-#     "SeismoSue", "EMSC", "myearthquakeapp", "MapQuake", "earthb0t", "phivolcs_dost"]
 relevantUsers = [Row("QuakesToday"), Row("earthquakeBot"), Row("USGS_ShakeAlert"),\
     Row("USGS_Quakes"), Row("USGSted"), Row("SeismicFox1"), Row("EQAlerts"), \
     Row("raspishakEQ"), Row("earthshook"), Row("VolcanoWatching"), Row("LastQuake"), \
@@ -40,10 +36,6 @@ tweetSchema = StructType() \
 
 tweets = tweets.withColumn('data', from_json(tweets.value.cast(StringType()), tweetSchema))
 
-# relevantTweets = tweets.select(
-#    tweets.data.user.alias("user"),
-#    tweets.timestamp
-# ).filter(col("user").isin(relevantUserList))
 relevantTweets = tweets.select(
     tweets.data.user.alias("user"),
     tweets.timestamp

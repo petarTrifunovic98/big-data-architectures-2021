@@ -49,8 +49,6 @@ while True:
         print("<<<<<<<<<<<<<<<<< Failure reading! Retrying... >>>>>>>>>>>>>>>>>")
         time.sleep(5)
 
-# dfReadMigr.show(10)
-# dfReadDeps.show(10)
 dfMigr.printSchema()
 dfBirthDeathRate.printSchema()
 
@@ -68,10 +66,6 @@ while True:
         print("<<<<<<<<<<<<<<<<< Failure reading! Retrying... >>>>>>>>>>>>>>>>>")
         time.sleep(5)
 
-#dfReadSeismic.show(10)
-#dfNumQuakesAndAvgMag.persist()
-#dfNumQuakesAndAvgMag.printSchema()
-
 # -------------------------------- #
 
 columnsToJoinOn = ['country_name', 'year']
@@ -80,6 +74,4 @@ dfSeismicData = dfNumQuakesAndAvgMag.join(dfNumQuakesWithHighMag, columnsToJoinO
     .join(dfMigr, columnsToJoinOn).join(dfBirthDeathRate, columnsToJoinOn)
 dfSeismicData = dfSeismicData.withColumn("occurrence_y", dfSeismicData.year).drop("year")
 dfSeismicData.write.format("mongo").mode("overwrite").save()
-#dfSeismicAndArrs.printSchema()
-#dfSeismicAndArrs.show(20)
 

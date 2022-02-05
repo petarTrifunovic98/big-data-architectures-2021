@@ -49,17 +49,13 @@ dfUSStatesFromCSV = spark.read.option("multiline", "true").option("sep", ",").op
 
 dfEarthquakes = dfEarthquakesFromCSV.drop("nst", "rms", "net", "updated", "horizontalError", \
     "depthError", "magError", "magNst", "status", "locationSource", "magSource")
-#dfEarthquakes.printSchema()
 
 dfCountries = dfCountriesFromCSV.drop("country_area", "country_code")
-#dfCountries.printSchema()
 
 dfUSStates = dfUSStatesFromCSV.withColumn('state_name', trim(dfUSStatesFromCSV.Name)) \
     .withColumn('state_code', trim(dfUSStatesFromCSV.Abbreviation))
 dfUSStates = dfUSStates.drop("Type", "Name", "Abbreviation", "Capital", \
     "Population (2015)", "Population (2019)", "area (square miles)")
-# dfUSStates.printSchema()
-# dfUSStates.show()
 
 
 dfEarthquakes.createOrReplaceTempView("EARTHQUAKES")

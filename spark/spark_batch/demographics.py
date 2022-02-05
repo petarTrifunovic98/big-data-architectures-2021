@@ -13,7 +13,7 @@ from pyspark.sql.types import *
 
 print("<<<<<<<<<<<<<<<<<<<<< SPARK SCRIPT >>>>>>>>>>>>>>>>>>>>>>")
 spark = SparkSession.builder.appName("demographics").getOrCreate()
-#spark.sparkContext.setLogLevel('WARN')
+spark.sparkContext.setLogLevel('WARN')
 
 HDFS_NAMENODE = os.environ["CORE_CONF_fs_defaultFS"]
 

@@ -19,7 +19,6 @@ print(">>>>>>>>>>")
 print(KAFKA_BROKER.split(","))
 print("<<<<<<<<<<")
 
-#producer = KafkaProducer(bootstrap_servers=KAFKA_BROKER.split(",")[0])
 while True:
     try:
         producer = KafkaProducer(bootstrap_servers=KAFKA_BROKER.split(","))
@@ -28,29 +27,6 @@ while True:
     except kafka.errors.NoBrokersAvailable as e:
         print(e)
         time.sleep(3)
-
-class twitterAuth():
-
-    def authenticateTwitterApp(self):
-        auth = OAuthHandler(API_key, API_secret)
-        auth.set_access_token(access_token, access_token_secret)
-        print(">>>>>>AUTH SUCCESSFUL<<<<<<")
-        return auth
-
-
-class TwitterStreamer():
-
-    def __init__(self):
-        self.twitterAuth = twitterAuth()
-
-    def stream_tweets(self):
-        print(">>>>STARTING STREAM<<<<")
-        while True:
-            print(">>>>>TWEETS<<<<")
-            listener = ListenerTS()
-            auth = self.twitterAuth.authenticateTwitterApp()
-            stream = Stream(auth, listener)
-            stream.filter(track=["earthquake"], stall_warnings=True, languages=["en"])
 
 
 class ListenerTS(Stream):
@@ -63,7 +39,7 @@ class ListenerTS(Stream):
         user = status.user.screen_name
         value = {'text': text, 'user': user}
         value_json = json.dumps(value)
-        print("sent to kafka topic")
+        # print("sent to kafka topic")
         producer.send(topic_name, bytes(value_json, 'utf-8'))
         return True
 
