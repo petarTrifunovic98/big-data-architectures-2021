@@ -14,7 +14,7 @@ This project uses historical data about seismic activity in the world in order t
   1. Twitter API with filters
 
 ## Running the application
-- Download the .csv files for historical data from the links listed above and place them inside the "./local_data" directory. Change the names of the downloaded files as follows:
+- Download the .csv files for historical data from the links listed above and place them inside the "./local_data/batch" directory. Change the names of the downloaded files as follows:
   1. Seismographic data - change from "consolidated_data.csv" to "seismic_activity_info.csv"
   2. Demographics - no change (keep the names "birth_death_growth_rates.csv" and "country_names_area.csv")
   3. Tourism - change from "API_ST.INT.ARVL_DS2_en_csv_v2_1927083.csv" to "tourism_arrivals.csv"; change from "API_ST.INT.DPRT_DS2_en_csv_v2_1929304.csv" to "tourism_departures.csv")
